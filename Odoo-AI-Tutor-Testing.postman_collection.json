@@ -1,0 +1,457 @@
+{
+  "info": {
+    "_postman_id": "odoo-ai-tutor-testing",
+    "name": "Odoo AI Tutor - Backend Testing",
+    "description": "Complete testing collection for Odoo AI Tutor microservice with WebSocket support",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345678"
+  },
+  "item": [
+    {
+      "name": "🔧 Setup",
+      "item": [
+        {
+          "name": "✅ 1. Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verify that the backend is running and all services are connected"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 2. Create Test Exercise",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/test/create-exercise",
+              "host": ["{{base_url}}"],
+              "path": ["test", "create-exercise"]
+            },
+            "description": "Create a test exercise with structured steps in ChromaDB"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 REST API - Exercises",
+      "item": [
+        {
+          "name": "✅ 3. Get Exercise Step",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/exercise/{{exercise_id}}/step/1",
+              "host": ["{{base_url}}"],
+              "path": ["exercise", "{{exercise_id}}", "step", "1"]
+            },
+            "description": "Get a specific step from an exercise (step 1)"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 4. Get Step Context",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/exercise/{{exercise_id}}/step-context/ex-create-quotation_step-002",
+              "host": ["{{base_url}}"],
+              "path": ["exercise", "{{exercise_id}}", "step-context", "ex-create-quotation_step-002"]
+            },
+            "description": "Get instruction context including previous and next steps"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔌 WebSocket - Real-time Communication",
+      "item": [
+        {
+          "name": "✅ 5. WebSocket Connect",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-{{$timestamp}}&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-{{$timestamp}}"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Establish WebSocket connection. Save the session_id from response."
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 6. Send Chat Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Send a chat message via WebSocket. Use this message body:\n\n```json\n{\n  \"type\": \"chat\",\n  \"message\": \"How do I create a sales quotation in Odoo?\",\n  \"context\": {\n    \"model\": \"sale.order\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 7. Respond to Confirmation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Respond 'yes' to exercise confirmation. Use this message body:\n\n```json\n{\n  \"type\": \"chat\",\n  \"message\": \"yes\",\n  \"context\": {\n    \"model\": \"sale.order\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 8. Navigate to Next Step",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Send 'next' to advance to the next step. Use this message body:\n\n```json\n{\n  \"type\": \"chat\",\n  \"message\": \"next\",\n  \"context\": {\n    \"model\": \"sale.order\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 9. Send UI Event",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Send a UI event. Use this message body:\n\n```json\n{\n  \"type\": \"ui_event\",\n  \"event_name\": \"button_click\",\n  \"event_data\": {\n    \"button_name\": \"save\",\n    \"model\": \"sale.order\",\n    \"timestamp\": 1706345683.000\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 10. Send Feedback Event (AI Feedback Unclear)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Send an 'ai_feedback_unclear' event. Use this message body:\n\n```json\n{\n  \"type\": \"feedback_event\",\n  \"event_name\": \"ai_feedback_unclear\",\n  \"event_data\": {\n    \"comment\": \"unclear\",\n    \"context\": {\n      \"model\": \"stock.picking.type\",\n      \"view\": \"form\",\n      \"mode\": \"list\"\n    },\n    \"error\": \"\",\n    \"message_body_html\": \"<p>¡Hola! ¿En que puedo ayudarte?</p>\",\n    \"message_body_text\": \"¡Hola! ¿En que puedo ayudarte?\",\n    \"message_uid\": \"031761a0-bcbd-4a5b-82c9-4253366b02f2\",\n    \"rpc_result\": \"\",\n    \"saved_to_odoo\": false,\n    \"timestamp\": \"2026-01-27T22:11:35.3942\",\n    \"vote\": \"\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 11. Update Context",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:8000/ws?session_id=test-session-001&user_login={{user_login}}&db={{db}}",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["ws"],
+              "query": [
+                {
+                  "key": "session_id",
+                  "value": "test-session-001"
+                },
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "db",
+                  "value": "{{db}}"
+                }
+              ]
+            },
+            "description": "Update session context. Use this message body:\n\n```json\n{\n  \"type\": \"context_update\",\n  \"context\": {\n    \"model\": \"project.project\",\n    \"view\": \"kanban\",\n    \"department\": \"IT\"\n  }\n}\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 REST API - Analytics",
+      "item": [
+        {
+          "name": "✅ 12. Get User Interactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/interactions?user_login={{user_login}}&interaction_type=chat&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["user", "interactions"],
+              "query": [
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "interaction_type",
+                  "value": "chat"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Retrieve all interactions for a specific user (chat, feedback, ui_event)"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 13. Search Interactions (Semantic Search)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/interactions/search?user_login={{user_login}}&query=quotation&n_results=5",
+              "host": ["{{base_url}}"],
+              "path": ["user", "interactions", "search"],
+              "query": [
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                },
+                {
+                  "key": "query",
+                  "value": "quotation"
+                },
+                {
+                  "key": "n_results",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Semantic search over user interactions using ChromaDB"
+          },
+          "response": []
+        },
+        {
+          "name": "✅ 14. Get Session Interactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/session/test-session-001/interactions?user_login={{user_login}}",
+              "host": ["{{base_url}}"],
+              "path": ["session", "test-session-001", "interactions"],
+              "query": [
+                {
+                  "key": "user_login",
+                  "value": "{{user_login}}"
+                }
+              ]
+            },
+            "description": "Retrieve all interactions for a specific session"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your-super-secret-key-123",
+      "type": "string"
+    },
+    {
+      "key": "user_login",
+      "value": "user.test@example.com",
+      "type": "string"
+    },
+    {
+      "key": "db",
+      "value": "test_db",
+      "type": "string"
+    },
+    {
+      "key": "exercise_id",
+      "value": "ex-create-quotation",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "test-session-001",
+      "type": "string"
+    },
+    {
+      "key": "interaction_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

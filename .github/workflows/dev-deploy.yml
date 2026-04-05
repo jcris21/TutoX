@@ -1,0 +1,89 @@
+name: CD
+
+on:
+  push:
+    branches: [ dev ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.rbenv
+          sudo apt-get clean
+          sudo docker system prune -af || true
+          df -h
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_RAW=ghcr.io/${{ github.repository }}/odoo-app
+          IMAGE=$(echo "$IMAGE_RAW" | tr '[:upper:]' '[:lower:]')
+          docker build -f ms_ai/Dockerfile --target production -t $IMAGE:dev .
+          docker push $IMAGE:dev
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          timeout: 30m
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+
+            IMAGE_RAW=ghcr.io/${{ github.repository }}/odoo-app:dev
+            IMAGE=$(echo "$IMAGE_RAW" | tr '[:upper:]' '[:lower:]')
+
+            echo "============================================"
+            echo "🚀 Starting deployment"
+            echo "Image: $IMAGE"
+            echo "Commit: ${{ github.sha }}"
+            echo "============================================"
+
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+
+            docker rmi "$IMAGE" 2>/dev/null || true
+            docker pull "$IMAGE"
+
+            cd /opt/odoo-***-backend || exit 1
+
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD="docker compose"
+            else
+              COMPOSE_CMD="docker-compose"
+            fi
+
+            $COMPOSE_CMD stop ms_ai || true
+            $COMPOSE_CMD rm -f ms_ai || true
+            $COMPOSE_CMD up -d --no-deps --force-recreate ms_ai
+
+            sleep 5
+            $COMPOSE_CMD ps ms_ai
+
+            docker image prune -f || true
+
+            echo "✅ Deployment completed"

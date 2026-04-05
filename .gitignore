@@ -1,0 +1,24 @@
+.env
+.fallback_errors.log
+Lib/
+site-packages/
+.venv/
+venv/
+env/
+*.dll
+*.lib
+*.pyd
+*.so
+*.dylib
+__pycache__/
+*.pyc
+logs/
+pyvenv.cfg
+ms_ai/app/__pycache__/main.cpython-310.pyc
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+Scripts
+share

@@ -1,0 +1,71 @@
+services:
+  ms_ai:
+    image: ghcr.io/odoo-concept/odoo-tutor-backend/odoo-app:dev
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    networks:
+      - my_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/app
+      - REDIS_URL=redis://redis:6379
+    command: >
+      uvicorn ms_ai.app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --proxy-headers
+      --forwarded-allow-ips="*"
+    restart: unless-stopped
+
+  ms_ai_dev:
+    build:
+      context: .
+      dockerfile: ms_ai/Dockerfile
+      target: development
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/app
+      - WATCHFILES_FORCE_POLLING=true
+      - REDIS_URL=redis://redis:6379
+    command: >
+      uvicorn ms_ai.app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app
+      --proxy-headers
+      --forwarded-allow-ips="*"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - my_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes
+
+networks:
+  my_network:
+    driver: bridge
+
+volumes:
+  redis_data:
